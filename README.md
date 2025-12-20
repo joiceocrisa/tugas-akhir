@@ -6,7 +6,9 @@ FEDformer (Frequency Enhanced Decomposed Transformer) is a deep learning archite
 
 Long Short-Term Memory (LSTM) is a specialized type of Recurrent Neural Network (RNN) designed to process sequential data and learn long-term dependencies.
 
-Data that used in this final project are: BBCA's stock, BBRI's stock, and BMRI's stock.
+Data that used in this final project are: BBCA, BBRI, BMRI's daily stock price.
+Start date: 30 June 2004
+End date: 30 June 2025
 
 Steps for this final project:
 
