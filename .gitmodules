@@ -1,0 +1,3 @@
+[submodule "indonesia-bank-stock-dataset"]
+    path = indonesia-bank-stock-dataset
+    url = https://github.com/queryflow-ai/indonesia-bank-stock-dataset.git
