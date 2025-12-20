@@ -1,11 +1,14 @@
-# TUGAS AKHIR 
-Comparing FEDformer and LSTM model in stock forecasting. 
+# TUGAS AKHIR
+
+Comparing FEDformer and LSTM model in stock forecasting.
 
 FEDformer (Frequency Enhanced Decomposed Transformer) is a deep learning architecture designed for long-term time series forecasting.
 
 Long Short-Term Memory (LSTM) is a specialized type of Recurrent Neural Network (RNN) designed to process sequential data and learn long-term dependencies.
 
-Steps for this project:
+Data that used in this final project are: BBCA's stock, BBRI's stock, and BMRI's stock.
+
+Steps for this final project:
 
 1. Clean data
 2. EDA
