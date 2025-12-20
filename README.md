@@ -18,3 +18,10 @@ Steps for this final project:
 6. Training-Validation and Tuning Model
 7. Modeling and Invers data
 8. Compare the model
+
+
+## How to Pull Dataset
+
+```
+git submodule update --init --recursive
+```
