@@ -19,9 +19,6 @@ FEDformer Model
 
 """
 
-import math
-import numpy as np
-import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -399,21 +396,21 @@ class FEDformer_Model (nn.Module):
         # Attention 
         encoder_self_attention = Frequency_FourierBlock(
             d_model=configs.d_model,
-            out_channel=configs.d_model,
+            out_channels=configs.d_model,
             seq_len=self.seq_len,
             modes=configs.modes,
             mode_select_method=configs.mode_select
         )
         decoder_self_attention = Frequency_FourierBlock(
             d_model=configs.d_model,
-            out_channel=configs.d_model,
+            out_channels=configs.d_model,
             seq_len=self.seq_len//2+self.pred_len,
             modes=configs.modes,
             mode_select_method=configs.mode_select
         )
         decoder_cross_attention = Frequency_FourierCrossAttention(
             d_model=configs.d_model,
-            out_channel=configs.d_model,
+            out_channels=configs.d_model,
             seq_len_q=self.seq_len//2+self.pred_len,
             seq_len_kv=self.seq_len,
             modes=configs.modes,
@@ -422,7 +419,7 @@ class FEDformer_Model (nn.Module):
 
         # Encoder
         enc_modes = int(min(configs.modes, configs.seq_len//2))
-        dec_modes - int(min(configs.modes, (configs.seq_len//2 + configs.pred_len)//2))
+        dec_modes = int(min(configs.modes, (configs.seq_len//2 + configs.pred_len)//2))
         print('enc_modes: {}, dec_modes: {}'.format(enc_modes, dec_modes))
 
         self.encoder = Encoder(

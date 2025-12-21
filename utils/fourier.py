@@ -145,7 +145,7 @@ class Frequency_FourierCrossAttention(nn.Module):
     ----------
     d_model : int
         Dimensi embedding input (jumlah fitur total sebelum dibagi ke head).
-    out_channels : int
+    out_channel : int
         Dimensi embedding output, umumnya sama dengan d_model.
     seq_len_q : int
         Panjang sekuens query (decoder input).
@@ -238,7 +238,7 @@ class Frequency_FourierCrossAttention(nn.Module):
             xqk_ft = torch.softmax(abs(xqk_ft), dim=-1)
             xqk_ft = torch.complex(xqk_ft, torch.zeros_like(xqk_ft))
         else:
-            raise Exception('{} actiation function is not implemented'.format(self.activation))
+            raise Exception('{} activation function is not implemented'.format(self.activation))
         xqkv_ft = torch.einsum("bhxy,bhey->bhex", xqk_ft, xk_ft_)
         xqkvw = torch.einsum("bhex,heox->bhox", xqkv_ft, self.weights1)
         out_ft = torch.zeros(B, H, E, L // 2 + 1, device=xq.device, dtype=torch.cfloat)

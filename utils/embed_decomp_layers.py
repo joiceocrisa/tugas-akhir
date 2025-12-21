@@ -3,7 +3,6 @@ import numpy as np
 import time
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 # Data Embedding ===================================================================================================================================
 class TokenEmbedding(nn.Module):
