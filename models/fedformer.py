@@ -356,12 +356,12 @@ class Decoder(nn.Module):
 
 # FEDformer Model ============================================================================================================================================
 
-class fedformer_model_real (nn.Module):
+class FEDformer_Model (nn.Module):
     """
     FEDformer Model 
     """
     def __init__(self, configs):
-        super(fedformer_model_real, self).__init__()
+        super(FEDformer_Model, self).__init__()
         # inisialisasi parameter dasar model
         self.mode_select = configs.mode_select 
         self.modes = configs.modes
