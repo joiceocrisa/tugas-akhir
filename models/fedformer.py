@@ -363,32 +363,32 @@ class FEDformer_Model (nn.Module):
     def __init__(self, configs):
         super(FEDformer_Model, self).__init__()
         # inisialisasi parameter dasar model
-        self.mode_select = configs.mode_select 
-        self.modes = configs.modes
-        self.seq_len = configs.seq_len
-        self.label_len = configs.label_len
-        self.pred_len = configs.pred_len
-        self.output_attention = configs.output_attention
+        self.mode_select = configs.mode_select  # pemilihan frekuensi
+        self.modes = configs.modes              # jumlah mode frekuensi yang dipilih
+        self.seq_len = configs.seq_len          # panjang sekuens input
+        self.label_len = configs.label_len      # panjang sekuens label (historis)
+        self.pred_len = configs.pred_len        # panjang sekuens prediksi
+        self.output_attention = configs.output_attention # apakah output attention diinginkan
 
         # Decomposition 
-        kernel_size = configs.moving_avg
-        if isinstance(kernel_size, list):
-            self.decomp = series_decomp_multi(kernel_size)
+        kernel_size = configs.moving_avg # ukuran kernel moving average untuk dekomposisi
+        if isinstance(kernel_size, list): 
+            self.decomp = series_decomp_multi(kernel_size) # multi-scale decomposition
         else:
-            self.decomp = series_decomp(kernel_size)
+            self.decomp = series_decomp(kernel_size) # single-scale decomposition
 
         # Embedding
         self.enc_embedding = DataEmbedding_no_pos(
             configs.enc_in,
             configs.d_model,
-            embed_type=configs.embed_type,
+            configs.embed_type,
             freq=configs.freq,
             dropout=configs.dropout
         )   
         self.dec_embedding = DataEmbedding_no_pos(
             configs.dec_in,
             configs.d_model,
-            embed_type=configs.embed_type,
+            configs.embed_type,
             freq=configs.freq,
             dropout=configs.dropout
         )
@@ -452,7 +452,7 @@ class FEDformer_Model (nn.Module):
                         configs.d_model,
                         configs.n_heads),
                     d_model=configs.d_model,
-                    c_out=configs.dec_out,
+                    c_out=configs.c_out,
                     d_ff=configs.d_ff,
                     moving_avg=configs.moving_avg,
                     dropout=configs.dropout,
@@ -460,13 +460,13 @@ class FEDformer_Model (nn.Module):
                 ) for l in range(configs.d_layers)
             ],
             norm_layer=my_Layernorm(configs.d_model),
-            projection=nn.Linear(configs.d_model, configs.dec_out)
+            projection=nn.Linear(configs.d_model, configs.c_out)
         )
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, 
                 enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):
         # dekomposisi input
         mean = torch.mean(x_enc, dim=1).unsqueeze(1).repeat(1, self.pred_len, 1)
-        zero = torch.zeros([x_dec.shape[0], self.pred_len, x_dec.shape[2]]).to(device)
+        zero = torch.zeros([x_dec.shape[0], self.pred_len, x_dec.shape[2]])
         seasonal_init, trend_init = self.decomp(x_enc)
 
         # decoder input
