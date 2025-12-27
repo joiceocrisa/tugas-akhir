@@ -20,7 +20,7 @@ def train_lstm_tuning(dropout, lr, batch_size, train_dataset, val_dataset, DEVIC
 
     EPOCHS_TUNING = 20
 
-    # Training
+    # ===================== TRAIN =====================
     for epoch in range(EPOCHS_TUNING):
         model.train()
         for X_batch, y_batch in train_loader:
@@ -33,7 +33,7 @@ def train_lstm_tuning(dropout, lr, batch_size, train_dataset, val_dataset, DEVIC
             loss.backward()
             optimizer.step()
 
-    # Validation
+    # ===================== VALIDATION =====================
     model.eval()
     val_loss = 0.0
     with torch.no_grad():
