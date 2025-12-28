@@ -264,6 +264,31 @@ class series_decomp_multi(nn.Module):
         res = x - moving_mean
         return res, moving_mean 
 
+def fedformer_decompose(
+    series,
+    kernel_sizes,
+    DEVICE
+):
+    """
+    series: numpy array [T] atau [T, 1]
+    return: seasonal, trend (numpy)
+    """
+    if series.ndim == 1:
+        series = series.reshape(-1, 1)
+
+    x = torch.FloatTensor(series).unsqueeze(0).to(DEVICE)  # [1, T, 1]
+
+    decomp = series_decomp_multi(kernel_sizes).to(DEVICE)
+    decomp.eval()
+
+    with torch.no_grad():
+        seasonal, trend = decomp(x)
+
+    return (
+        seasonal.squeeze().cpu().numpy(),
+        trend.squeeze().cpu().numpy()
+    )
+
 
 # Auto Correlation Layer ===================================================================================================================================
 class AutoCorrelationLayer(nn.Module):
