@@ -57,56 +57,113 @@ def prepare_univariate_data(
     test_ratio: float = 0.15,
     scale: bool = True
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, Optional[MinMaxScaler]]:
-    """
-    Prepare univariate time series data for training.
     
-    Args:
-        df: DataFrame with stock data
-        feature_col: Column name to use for prediction (default: 'Close')
-        seq_len: Sequence length (number of time steps to look back)
-        pred_len: Prediction length (number of time steps to predict)
-        train_ratio: Ratio of training data
-        val_ratio: Ratio of validation data
-        test_ratio: Ratio of test data
-        scale: Whether to scale the data using MinMaxScaler
-        
-    Returns:
-        Tuple of (X_train, y_train, X_val, y_val, X_test, y_test, scaler)
-    """
-    # Extract the feature column
     data = df[feature_col].values.reshape(-1, 1)
     
-    # Scale the data
+    # Split data
+    n_total = len(data)
+    train_end = int(n_total * train_ratio)
+    val_end = train_end + int(n_total * val_ratio)
+    
+    raw_train = data[:train_end]
+    raw_val = data[train_end:val_end]
+    raw_test = data[val_end:]
+    
+    # Scaling (Hanya Fit pada Training Data)
     scaler = None
     if scale:
         scaler = MinMaxScaler(feature_range=(0, 1))
-        data = scaler.fit_transform(data)
-    
-    # Create sequences
-    X, y = [], []
-    for i in range(len(data) - seq_len - pred_len + 1):
-        X.append(data[i:i+seq_len])
-        y.append(data[i+seq_len:i+seq_len+pred_len])
-    
-    X = np.array(X)
-    y = np.array(y)
-    
-    # Reshape y to (samples, pred_len)
-    if y.ndim == 3:
-        y = y.reshape(y.shape[0], y.shape[1])
-    
-    # Split data
-    n_samples = len(X)
-    train_end = int(n_samples * train_ratio)
-    val_end = train_end + int(n_samples * val_ratio)
-    
-    X_train = X[:train_end]
-    y_train = y[:train_end]
-    X_val = X[train_end:val_end]
-    y_val = y[train_end:val_end]
-    X_test = X[val_end:]
-    y_test = y[val_end:]
+        # Fit hanya pada training untuk mencegah data leakage
+        train_data = scaler.fit_transform(raw_train)
+        # Gunakan parameter dari train untuk transform val & test
+        val_data = scaler.transform(raw_val)
+        test_data = scaler.transform(raw_test)
+    else:
+        train_data, val_data, test_data = raw_train, raw_val, raw_test
+
+    # sliding window
+    def create_sequences(dataset, s_len, p_len):
+        X_seq, y_seq = [], []
+        for i in range(len(dataset) - s_len - p_len + 1):
+            X_seq.append(dataset[i:i + s_len])
+            y_seq.append(dataset[i + s_len:i + s_len + p_len])
+        return np.array(X_seq), np.array(y_seq)
+
+    # buat sequences untuk masing-masing bagian secara terpisah
+    X_train, y_train = create_sequences(train_data, seq_len, pred_len)
+    X_val, y_val = create_sequences(val_data, seq_len, pred_len)
+    X_test, y_test = create_sequences(test_data, seq_len, pred_len)
+
+    # Reshape y ke (samples, pred_len) jika perlu
+    if y_train.ndim == 3:
+        y_train = y_train.reshape(y_train.shape[0], y_train.shape[1])
+    if y_val.ndim == 3:
+        y_val = y_val.reshape(y_val.shape[0], y_val.shape[1])
+    if y_test.ndim == 3:
+        y_test = y_test.reshape(y_test.shape[0], y_test.shape[1])
     
     return X_train, y_train, X_val, y_val, X_test, y_test, scaler
+
+# def prepare_univariate_data(
+#     df: pd.DataFrame,
+#     feature_col: str = 'Close',
+#     seq_len: int = 60,
+#     pred_len: int = 1,
+#     train_ratio: float = 0.7,
+#     val_ratio: float = 0.15,
+#     test_ratio: float = 0.15,
+#     scale: bool = True
+# ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, Optional[MinMaxScaler]]:
+#     """
+#     Prepare univariate time series data for training.
+    
+#     Args:
+#         df: DataFrame with stock data
+#         feature_col: Column name to use for prediction (default: 'Close')
+#         seq_len: Sequence length (number of time steps to look back)
+#         pred_len: Prediction length (number of time steps to predict)
+#         train_ratio: Ratio of training data
+#         val_ratio: Ratio of validation data
+#         test_ratio: Ratio of test data
+#         scale: Whether to scale the data using MinMaxScaler
+        
+#     Returns:
+#         Tuple of (X_train, y_train, X_val, y_val, X_test, y_test, scaler)
+#     """
+#     # Extract the feature column
+#     data = df[feature_col].values.reshape(-1, 1)
+    
+#     # Scale the data
+#     scaler = None
+#     if scale:
+#         scaler = MinMaxScaler(feature_range=(0, 1))
+#         data = scaler.fit_transform(data)
+    
+#     # Create sequences
+#     X, y = [], []
+#     for i in range(len(data) - seq_len - pred_len + 1):
+#         X.append(data[i:i+seq_len])
+#         y.append(data[i+seq_len:i+seq_len+pred_len])
+    
+#     X = np.array(X)
+#     y = np.array(y)
+    
+#     # Reshape y to (samples, pred_len)
+#     if y.ndim == 3:
+#         y = y.reshape(y.shape[0], y.shape[1])
+    
+#     # Split data
+#     n_samples = len(X)
+#     train_end = int(n_samples * train_ratio)
+#     val_end = train_end + int(n_samples * val_ratio)
+    
+#     X_train = X[:train_end]
+#     y_train = y[:train_end]
+#     X_val = X[train_end:val_end]
+#     y_val = y[train_end:val_end]
+#     X_test = X[val_end:]
+#     y_test = y[val_end:]
+    
+#     return X_train, y_train, X_val, y_val, X_test, y_test, scaler
 
 
