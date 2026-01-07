@@ -33,14 +33,15 @@ def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict:
     # MAPE (Mean Absolute Percentage Error)
     mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
     
-    # # R2 Score
-    # r2 = r2_score(y_true, y_pred)
+    # R2 Score
+    r2 = r2_score(y_true, y_pred)
     
     metrics = {
         'MAE': mae,
         'MSE': mse,
         'RMSE': rmse,
         'MAPE': mape,
+        'R2': r2
     }
     
     return metrics
