@@ -18,7 +18,7 @@ def train_lstm_tuning(dropout, lr, batch_size, train_dataset, val_dataset, DEVIC
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    EPOCHS_TUNING = 20
+    EPOCHS_TUNING = 15
 
     # ===================== TRAIN =====================
     for epoch in range(EPOCHS_TUNING):
