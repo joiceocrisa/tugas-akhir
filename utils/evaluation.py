@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from typing import Optional
 import os
 
@@ -31,17 +31,13 @@ def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict:
     rmse = np.sqrt(mse)
     
     # MAPE (Mean Absolute Percentage Error)
-    mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
-    
-    # R2 Score
-    r2 = r2_score(y_true, y_pred)
-    
+    mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100  
+   
     metrics = {
         'MAE': mae,
         'MSE': mse,
         'RMSE': rmse,
-        'MAPE': mape,
-        'R2': r2
+        'MAPE': mape
     }
     
     return metrics
@@ -158,8 +154,6 @@ def print_metrics(metrics: dict, model_name: str = "Model") -> None:
     for metric_name, value in metrics.items():
         if metric_name == 'MAPE':
             print(f"{metric_name:10s}: {value:.4f}%")
-        elif metric_name == 'R2':
-            print(f"{metric_name:10s}: {value:.4f}")
         else:
             print(f"{metric_name:10s}: {value:.4f}")
     print("-" * 40)
