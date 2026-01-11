@@ -356,9 +356,132 @@ class Decoder(nn.Module):
 
 # FEDformer Model ============================================================================================================================================
 
-class FEDformer_Model (nn.Module):
+class FEDformer_Model(nn.Module):
     """
-    FEDformer Model 
+    Frequency Enhanced Decomposed Transformer (FEDformer) Model
+    yang digunakan untuk melakukan peramalan deret waktu (time series),
+    khususnya pada data dengan pola musiman dan tren yang kuat,
+    seperti harga saham, beban listrik, atau data ekonomi.
+
+    Model FEDformer mengombinasikan pendekatan dekomposisi deret waktu
+    (trend dan seasonal) dengan mekanisme Transformer berbasis domain
+    frekuensi (Fourier). Dengan memanfaatkan representasi frekuensi,
+    FEDformer mampu menangkap ketergantungan jangka panjang secara
+    lebih efisien dibandingkan Transformer konvensional di domain waktu.
+
+    Parameter
+    ----------
+    configs : object
+        Objek konfigurasi yang berisi seluruh hiperparameter model,
+        antara lain:
+
+        - enc_in : int  
+          Jumlah fitur input pada encoder.
+
+        - dec_in : int  
+          Jumlah fitur input pada decoder.
+
+        - c_out : int  
+          Jumlah fitur keluaran (output), umumnya 1 untuk data univariat.
+
+        - seq_len : int  
+          Panjang sekuens input historis yang digunakan oleh encoder.
+
+        - label_len : int  
+          Panjang sekuens historis yang diberikan sebagai input awal
+          pada decoder.
+
+        - pred_len : int  
+          Panjang horizon prediksi yang dihasilkan oleh model.
+
+        - d_model : int  
+          Dimensi representasi laten (embedding) pada Transformer.
+
+        - d_ff : int  
+          Dimensi feed-forward layer pada encoder dan decoder.
+
+        - n_heads : int  
+          Jumlah head pada mekanisme attention.
+
+        - e_layers : int  
+          Jumlah lapisan encoder.
+
+        - d_layers : int  
+          Jumlah lapisan decoder.
+
+        - moving_avg : int atau list  
+          Ukuran kernel moving average yang digunakan untuk
+          dekomposisi tren dan musiman.
+          Jika berupa list, maka digunakan multi-scale decomposition.
+
+        - modes : int  
+          Jumlah mode frekuensi Fourier yang dipilih.
+
+        - mode_select : str  
+          Metode pemilihan mode frekuensi
+          (misalnya 'random' atau 'low').
+
+        - dropout : float  
+          Nilai dropout untuk regularisasi model.
+
+        - activation : str  
+          Fungsi aktivasi yang digunakan pada feed-forward network.
+
+        - output_attention : bool  
+          Menentukan apakah bobot attention dikembalikan
+          sebagai bagian dari output model.
+
+    Input
+    -----
+    x_enc : torch.Tensor
+        Tensor input encoder berbentuk
+        [Batch, seq_len, enc_in],
+        yang merepresentasikan data historis utama.
+
+    x_mark_enc : torch.Tensor
+        Tensor penanda waktu (time features) untuk encoder
+        dengan bentuk [Batch, seq_len, *],
+        misalnya informasi hari, bulan, atau waktu.
+
+    x_dec : torch.Tensor
+        Tensor input decoder berbentuk
+        [Batch, label_len + pred_len, dec_in],
+        yang digunakan sebagai input awal decoder.
+
+    x_mark_dec : torch.Tensor
+        Tensor penanda waktu untuk decoder
+        dengan bentuk [Batch, label_len + pred_len, *].
+
+    enc_self_mask : torch.Tensor, opsional
+        Mask untuk self-attention pada encoder.
+
+    dec_self_mask : torch.Tensor, opsional
+        Mask untuk self-attention pada decoder.
+
+    dec_enc_mask : torch.Tensor, opsional
+        Mask untuk cross-attention antara decoder dan encoder.
+
+    Output
+    ------
+    out : torch.Tensor
+        Tensor output prediksi berbentuk
+        [Batch, pred_len, c_out],
+        yang merepresentasikan hasil peramalan
+        untuk horizon waktu ke depan.
+
+    attns : list of torch.Tensor, opsional
+        Bobot attention dari encoder,
+        hanya dikembalikan jika `output_attention=True`.
+
+    Catatan
+    -------
+    - Model melakukan dekomposisi deret waktu menjadi komponen
+      tren (trend) dan musiman (seasonal) sebelum proses encoding.
+    - Attention dihitung di domain frekuensi menggunakan
+      transformasi Fourier untuk meningkatkan efisiensi
+      pemodelan ketergantungan jangka panjang.
+    - Output akhir diperoleh dengan menjumlahkan kembali
+      komponen tren dan musiman hasil decoder.
     """
     def __init__(self, configs):
         super(FEDformer_Model, self).__init__()
@@ -460,7 +583,7 @@ class FEDformer_Model (nn.Module):
                 ) for l in range(configs.d_layers)
             ],
             norm_layer=my_Layernorm(configs.d_model),
-            projection=nn.Linear(configs.d_model, configs.c_out)
+            projection=nn.Linear(configs.d_model, configs.c_out) 
         )
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec, 
                 enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):
